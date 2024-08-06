@@ -1,0 +1,189 @@
+{
+    "list" : [
+        {
+            "feature" : "Basic Raytracer 1",
+            "method" : "copilot",
+            "query" : "Nabil-Darwish: Don't I need to cast before CameraWidth and Height into doubles?",
+            "response" : "GitHub Copilot: No, you don't need to cast before CameraWidth and Height into doubles. The compiler will automatically convert them to doubles.",
+            "code" : "camera.h:line_28-camera.h:line_44",
+        },
+        {
+            "feature" : "Basic Raytracer 2",
+            "method" : "copilot",
+            "query" : "Nabil-Darwish: Can you explain to me, step by step how each step works. My vector mathematics understanding is pretty weak",
+            "response" : "GitHub Copilot: Sure, let's break down the code:
+
+            1. `double a = dotProduct(direction_perp, direction_perp);`
+               This line calculates the square of the length of the direction vector perpendicular to the cylinder axis. This is part of the quadratic equation for the intersection of the ray with the infinite cylinder.
+            
+            2. `double b = 2.0 * dotProduct(oc_perp, direction_perp);`
+               This line calculates the dot product of the vector from the cylinder center to the ray origin (oc_perp) and the direction vector perpendicular to the cylinder axis. This is also part of the quadratic equation for the intersection of the ray with the infinite cylinder.
+            
+            3. `double c = dotProduct(oc_perp, oc_perp) - cylinder_radius * cylinder_radius;`
+               This line calculates the square of the length of the vector from the cylinder center to the ray origin (oc_perp), minus the square of the cylinder radius. This is the last part of the quadratic equation for the intersection of the ray with the infinite cylinder.
+            
+            4. `double discriminant = b*b - 4*a*c;`
+               This line calculates the discriminant of the quadratic equation. The discriminant determines the number of solutions to the quadratic equation. If the discriminant is less than zero, the quadratic equation has no real solutions, which means the ray does not intersect the infinite cylinder.
+            
+            5. `if (discriminant < 0) { return false; }`
+               This line checks if the discriminant is less than zero. If it is, the function returns false, indicating that the ray does not intersect the cylinder.
+            
+            6. `double t1 = (-b - sqrt(discriminant)) / (2*a);`
+               `double t2 = (-b + sqrt(discriminant)) / (2*a);`
+               These lines calculate the t values for the intersection points of the ray with the infinite cylinder. The t value represents the distance along the ray to the intersection point.
+            
+            7. `Vector3D p1 = r.at(t1);`
+               `Vector3D p2 = r.at(t2);`
+               These lines calculate the intersection points of the ray with the infinite cylinder.
+            
+            8. `double p1_proj_length = dotProduct(p1 - cylinder_center, cylinder_axis);`
+               `double p2_proj_length = dotProduct(p2 - cylinder_center, cylinder_axis);`
+               These lines calculate the distance of the intersection points from the cylinder center along the cylinder axis.
+            
+            9. `return (0 <= p1_proj_length && p1_proj_length <= cylinder_height) || (0 <= p2_proj_length && p2_proj_length <= cylinder_height);`
+               This line checks if the intersection points are within the height of the cylinder. If at least one of the intersection points is within the height of the cylinder, the function returns true, indicating that the ray intersects the cylinder. Otherwise, it returns false.",
+            "code" : "cylinder.h:line_10-cylinder.h:line_112",
+        },
+        {
+            "feature" : "Basic Raytracer 3",
+            "method" : "copilot",
+            "query" : "Nabil-Darwish: The JSON file defined materials as having ks, kd, specular exponent, diffuse colour, specular colour, is reflective, reflectivity, is refractive and refractive index for its variables. Where do I put the ks and kd variables? It also doesn't seem ambient colour is defined",
+            "response" : "GitHub Copilot: The ks and kd variables are defined in the material class. The ks variable is the specular coefficient, and the kd variable is the diffuse coefficient. The specular exponent is the exponent of the specular term in the Phong reflection model. The diffuse colour is the colour of the diffuse term in the Phong reflection model. The specular colour is the colour of the specular term in the Phong reflection model. The is reflective variable is a boolean that indicates whether the material is reflective. The reflectivity variable is the reflectivity of the material. The is refractive variable is a boolean that indicates whether the material is refractive. The refractive index is the refractive index of the material.",
+            "code" : "material.h:line_66-material.h:line_141",
+        },
+        {
+            "feature" : "Basic Raytracer 4",
+            "method" : "copilot",
+            "query" : "Nabil-Darwish: Here is the kind of approach I did for calculating the lighting for a point in the scene:
+
+            ```// Calculate the total light contribution
+                        Color total_light(0, 0, 0);
+                        // For each light in scene
+                        for (const auto& light : scene->getLights()) {
+                            // Light direction is from intersection point to light source
+                            // NOTE: The only lights implemented is PointLight, so this is fine for now
+                            Vector3D light_direction = light->getPosition() - record.p;
+                            double distance_to_light = getLength(light_direction);
+                            // Normalize the light direction
+                            light_direction = normalize(light_direction);
+                            // Calculate cos(theta)
+                            double cos_theta = std::max(0.0, dotProduct(record.normal, light_direction));
+                            // Get the light color
+                            Color light_color = light->getIntensity();
+            
+                            // Shadow ray check. Origin is the intersection point, direction is the light direction
+                            Ray shadow_ray(record.p, light_direction);
+                            Hit_record temp_rec;
+                            // Check if shadow ray intersects any of the shapes in the scene
+                            bool is_shadowed = false;
+                            // TODO: Optimize this
+                            // For each shape in the scene
+                            for (const auto& shape : scene->getShapes()) {
+                                // Check if the ray from point to light source is obstructed by any other shape, including itself
+                                if (shape->is_light_source_obstructed(shadow_ray, Interval(0.001, distance_to_light), light->getPosition())) {
+                                    is_shadowed = true;
+                                    break;
+                                }
+                            }
+            
+                            // If the shadow ray is not obstructed, add the light contribution
+                            if (!is_shadowed) {
+                                Vector3D view_direction = -ray.getDirection();
+                                // ray is from eye to intersection point, reverse it to get view direction
+                                total_light += record.mat_ptr->shade(record, light_direction, view_direction, light_color, distance_to_light);
+                            }
+                        }
+                        record.light_contribution = total_light;```
+            
+            How would I adapt it here? is_light_source_obstructed is a function defined within shape and for a sphere, I defined it to be the opposite of the hit function",
+            "response" : "GitHub Copilot: You can adapt your code by moving the lighting calculation logic to the `Scene` class. You can create a method in `Scene` that takes a `Hit_record` object, a `Ray` object, and a `Shape` object as parameters, and calculates the lighting for the hit point on the shape.
+
+            Here's an example:
+            
+            ```cpp
+            class Scene {
+                // ... other code ...
+            
+                Color calculateLightingForHitPoint(const Ray& ray, const Hit_record& record, const Shape& shape) const {
+                    Color total_light(0, 0, 0);
+            
+                    for (const auto& light : lights) {
+                        Vector3D light_direction = light->getPosition() - record.p;
+                        double distance_to_light = getLength(light_direction);
+                        light_direction = normalize(light_direction);
+                        Color light_color = light->getIntensity();
+            
+                        Ray shadow_ray(record.p, light_direction);
+                        bool is_shadowed = false;
+            
+                        for (const auto& other_shape : shapes) {
+                            if (other_shape->is_light_source_obstructed(shadow_ray, Interval(0.001, distance_to_light), light->getPosition())) {
+                                is_shadowed = true;
+                                break;
+                            }
+                        }
+            
+                        if (!is_shadowed) {
+                            Vector3D view_direction = -ray.getDirection();
+                            total_light += record.mat_ptr->shade(record, light_direction, view_direction, light_color, distance_to_light);
+                        }
+                    }
+            
+                    return total_light;
+                }
+            };
+            ```
+            
+            Then, in the part of your code where you detect a hit on a shape, you can call this method to calculate the lighting for the hit point:
+            
+            ```cpp
+            if (shape->hit(ray, t_values, rec)) {
+                Color light = scene->calculateLightingForHitPoint(ray, rec, *shape);
+                // ... use light ...
+            }
+            ```
+            
+            This approach allows you to calculate the lighting for a specific hit point on a specific shape, without introducing a circular dependency between `Shape` and `Scene`." ,
+            "code" : "scene.h:line_95-scene.h:line_190",
+        },
+        {
+            "feature" : "Basic Raytracer 5",
+            "method" : "copilot",
+            "query" : "Nabil-Darwish: Referring back to the reinhard tone conversion, I should only use it at the end of the render?",
+            "response" : "GitHub Copilot: Yes, you should only use the Reinhard tone mapping at the end of the render.",
+            "code" : "color.h:line_10-color.h:line_28",
+        },
+        {
+            "feature" : "Basic Raytracer 6",
+            "method" : "copilot",
+            "query" : "Nabil-Darwish: I need to create reflective materials later on. Would it be better to base it off the Lambertian and Blinn-Phon materials already defined or should I consider making a new material.
+
+            If I do, how would I calculate the scatter and attenuation?",
+            "response" : "GitHub Copilot: You can base your reflective material off the Lambertian and Blinn-Phong materials. You can use the same scatter and attenuation functions as the Lambertian and Blinn-Phong materials, but you will need to modify the attenuation function to take into account the reflectivity of the material.",
+            "code" : "material.h:line_66-material.h:line_141",
+        },
+        {
+            "feature" : "Basic Raytracer 7",
+            "method" : "copilot",
+            "query" : "Nabil-Darwish: The JSON files I have define a material based on the variables I have already defined in the Blinn-Phong material but also four other variables, isReflective, reflectivity, isRefractive and refractive index. How should I deal with these variables? Could I define them in a Blinn-Phong model? 
+
+            With the current set up of deciding whether to reflect or not, it leads to an interesting consequence that the reflectivitiy of the material can be set by changing the variable the random_double is set against",
+            "response" : "GitHub Copilot: You can define the isReflective, reflectivity, isRefractive, and refractive index variables in the Blinn-Phong material. You can use the same scatter and attenuation functions as the Lambertian and Blinn-Phong materials, but you will need to modify the attenuation function to take into account the reflectivity of the material.",
+            "code" : "material.h:line_66-material.h:line_141",
+        },
+        {
+            "feature" : "Path Tracer 1",
+            "method" : "copilot",
+            "query" : "Nabil-Darwish: How do I implement soft shadows? I have a point light source and I have a function that checks if a ray is obstructed by any other shape in the scene.",
+            "response" : "GitHub Copilot: You can implement soft shadows by using a random number generator to generate a random point on the surface of the light source. You can then use this random point as the origin of the shadow ray.",
+            "code" : "scene.h:line_95-scene.h:line_190",
+        },
+        {
+            "feature" : "Path Tracer 4",
+            "method" : "copilot",
+            "query" : "Nabil-Darwish: Tell me of alternate ways to perform anti-aliasing",
+            "response" : "GitHub Copilot: You can perform anti-aliasing by using a random number generator to generate a random point on the surface of the light source. You can then use this random point as the origin of the shadow ray.",
+            "code" : "camera.h:line_46-camera.h:line_64",
+        }
+    ]
+}

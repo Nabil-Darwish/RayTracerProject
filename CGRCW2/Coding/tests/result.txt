@@ -1,0 +1,11 @@
+Running vector tests...
+Vector addition test passed!
+Vector subtraction test passed!
+Vector cross product test passed!
+Vector dot product test passed!
+Vector scalar multiplication test passed!
+Vector scalar multiplication left scalar test passed!
+Vector scalar division test passed!
+Vector length squared test passed!
+Vector length test passed!
+Vector normalization test passed!
